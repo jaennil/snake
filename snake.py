@@ -1,134 +1,242 @@
-import tkinter as tk
-import random
+from tkinter import *
+from random import randint
+import time
 
 
-class Field:
-    def __init__(self, master, spot_size, row, col, w, field_color, outline_color, array=[]):
-        self.spot_size = spot_size
-        self.canvas = tk.Canvas(
-            master=master,
-            bg='#75bbfd',
-            width=col * spot_size + 2,
-            height=row * spot_size + 2
-        )
-        self.canvas.focus_set()
-        self.canvas.pack(side=tk.LEFT)
-        self.row = row
-        self.col = col
-        self.w = w
-        self.field_color = field_color
-        self.outline_color = outline_color
-        self.array = array
-        self.create_field()
-
-    def create_field(self):
-        for r in range(self.row):
-            self.array.append([])
-            for c in range(self.col):
-                self.array[r].append(self.canvas.create_rectangle
-                    (
-                    2 + c * self.spot_size,
-                    2 + r * self.spot_size,
-                    2 + c * self.spot_size + self.spot_size,
-                    2 + r * self.spot_size + self.spot_size,
-                    fill=self.field_color,
-                    outline=self.outline_color,
-                    width=self.w)
-                )
+def create_field():
+    w = 20
+    for i in range(row):
+        array.append([])
+        for j in range(col):
+            array[i].append(
+                canvas.create_rectangle(20 + j * w, 20 + i * w, 20 + (j + 1) * w, 20 + (i + 1) * w, fill=canvas_color))
+            tk.update()
+    return array
 
 
-class Snake:
-    def __init__(self, field, snake_color, food_color):
-        self.root = root
-        self.canvas = field.canvas
-        self.field = field
-        self.snake_color = snake_color
-        self.food_color = food_color
-        self.score = 0
-        self.x_head = random.randint(0, field.col - 1)
-        self.y_head = random.randint(0, field.row - 1)
-        self.head = field.array[self.y_head][self.x_head]
-
-        self.snake = [self.head]
-
-        self.set_defaults()
-
-    def set_defaults(self):
-        self.canvas.bind('<a>', self.moveleft)
-        self.canvas.bind('<d>', self.moveright)
-        self.canvas.bind('<s>', self.movedown)
-        self.canvas.bind('<w>', self.moveup)
-
-        self.field.canvas.itemconfig(self.head, fill=self.snake_color)
-
-        self.craete_food()
-
-    def moveleft(self, event):
-        if self.x_head:
-            self.delete_tail()
-            self.x_head -= 1
-            self.update_head()
-            self.check_for_lose()
-            self.check_food()
-
-    def moveright(self, event):
-        if self.x_head < self.field.col - 1:
-            self.delete_tail()
-            self.x_head += 1
-            self.update_head()
-            self.check_for_lose()
-            self.check_food()
-
-    def movedown(self, event):
-        if self.y_head < self.field.row - 1:
-            self.delete_tail()
-            self.y_head += 1
-            self.update_head()
-            self.check_for_lose()
-            self.check_food()
-
-    def moveup(self, event):
-        if self.y_head:
-            self.delete_tail()
-            self.y_head -= 1
-            self.update_head()
-            self.check_for_lose()
-            self.check_food()
-
-    def check_food(self):
-        if self.food == self.head:
-            self.score += 1
-            print(self.score)
-            self.snake.insert(0, 0)
-            self.craete_food()
-        print(self.snake)
-
-    def check_for_lose(self):
-        if self.head in self.snake[:-1]:
-            self.root.quit()
-
-    def update_head(self):
-        self.head = self.field.array[self.y_head][self.x_head]
-        self.snake.append(self.head)
-        self.canvas.itemconfig(self.head, fill=self.snake_color)
-
-    def delete_tail(self):
-        self.canvas.itemconfig(self.snake[0], fill=self.field.field_color)
-        del self.snake[0]
-
-    def craete_food(self):
-        self.x_food = random.randint(0, self.field.col - 1)
-        self.y_food = random.randint(0, self.field.row - 1)
-        self.food = self.field.array[self.y_food][self.x_food]
-        for el in self.snake:
-            if self.food == el:
-                self.craete_food()
-        else:
-            self.canvas.itemconfig(self.food, fill=self.food_color)
+def up(event):
+    global head
+    global direction
+    if head[0] == 0:
+        print('Вы врезались в стену :/')
+        game_over()
+    elif not game_ended:
+        direction.append('up')
+        canvas.itemconfig(array[head[0]][head[1]], fill=canvas_color)
+        head[0] -= 1
+        canvas.itemconfig(array[head[0]][head[1]], fill=snake_color)
+        if len(tail) > 1:
+            is_in_tail()
+            move_tail()
+        tk.update()
+        delete_and_create_eat()
 
 
-root = tk.Tk()
-root.geometry('1500x1000')
-f2 = Field(root, 20, 15, 20, 1, 'white', 'black')
-s2 = Snake(f2, 'yellow', 'purple')
-root.mainloop()
+def down(event):
+    global head
+    global direction
+    if head[0] == row - 1:
+        print('Вы врезались в стену :/')
+        game_over()
+    elif not game_ended:
+        direction.append('down')
+        canvas.itemconfig(array[head[0]][head[1]], fill=canvas_color)
+        head[0] += 1
+        canvas.itemconfig(array[head[0]][head[1]], fill=snake_color)
+        if len(tail) > 1:
+            is_in_tail()
+            move_tail()
+        tk.update()
+        delete_and_create_eat()
+
+
+def left(event):
+    global head
+    global direction
+    if head[1] == 0:
+        print('Вы врезались в стену :/')
+        game_over()
+    elif not game_ended:
+        direction.append('left')
+        canvas.itemconfig(array[head[0]][head[1]], fill=canvas_color)
+        head[1] -= 1
+        canvas.itemconfig(array[head[0]][head[1]], fill=snake_color)
+        if len(tail) > 1:
+            is_in_tail()
+            move_tail()
+        tk.update()
+        delete_and_create_eat()
+
+
+def right(event):
+    global head
+    global direction
+    if head[1] == col - 1:
+        print('Вы врезались в стену :/')
+        game_over()
+    elif not game_ended:
+        direction.append('right')
+        canvas.itemconfig(array[head[0]][head[1]], fill=canvas_color)
+        head[1] += 1
+        canvas.itemconfig(array[head[0]][head[1]], fill=snake_color)
+        if len(tail) > 1:
+            is_in_tail()
+            move_tail()
+        tk.update()
+        delete_and_create_eat()
+
+
+def delete_and_create_eat():
+    if head[0] == eat[0] and head[1] == eat[1]:
+        eat[0] = randint(0, row - 1)
+        eat[1] = randint(0, col - 1)
+        canvas.itemconfig(array[eat[0]][eat[1]], fill=eat_color)
+        append_tail()
+    if head[0] == eat[0] and head[1] == eat[1]:
+        canvas.itemconfig(array[eat[0]][eat[1]], fill=snake_color)
+        print('self pot spawn fixing')
+        delete_and_create_eat()
+    for i in range(0, len(tail), 2):
+        if tail[i] == eat[0] and tail[i+1] == eat[1]:
+            canvas.itemconfig(array[eat[0]][eat[1]], fill=snake_color)
+            print('eat in tail fix')
+            delete_and_create_eat()
+
+
+def append_tail():
+    global tail
+    if len(tail) > 1:
+        if direction[-(len(tail) // 2) - 1] == 'up':
+            tail.append(0)
+            tail.append(0)
+            tail[-2] = tail[-4] + 1
+            tail[-1] = tail[-3]
+            canvas.itemconfig(array[tail[-2]][tail[-1]], fill=snake_color)
+        elif direction[-(len(tail) // 2) - 1] == 'left':
+            tail.append(0)
+            tail.append(0)
+            tail[-2] = tail[-4]
+            tail[-1] = tail[-3] + 1
+            canvas.itemconfig(array[tail[-2]][tail[-1]], fill=snake_color)
+        elif direction[-(len(tail) // 2) - 1] == 'down':
+            tail.append(0)
+            tail.append(0)
+            tail[-2] = tail[-4] - 1
+            tail[-1] = tail[-3]
+            canvas.itemconfig(array[tail[-2]][tail[-1]], fill=snake_color)
+        elif direction[-(len(tail) // 2) - 1] == 'right':
+            tail.append(0)
+            tail.append(0)
+            tail[-2] = tail[-4]
+            tail[-1] = tail[-3] - 1
+            canvas.itemconfig(array[tail[-2]][tail[-1]], fill=snake_color)
+    else:
+        if direction[-1] == 'up':
+            tail.append(0)
+            tail.append(0)
+            tail[-2] = head[0] + len(tail) // 2
+            tail[-1] = head[1]
+            canvas.itemconfig(array[tail[-2]][tail[-1]], fill=snake_color)
+        elif direction[-1] == 'left':
+            tail.append(0)
+            tail.append(0)
+            tail[-2] = head[0]
+            tail[-1] = head[1] + len(tail) // 2
+            canvas.itemconfig(array[tail[-2]][tail[-1]], fill=snake_color)
+        elif direction[-1] == 'down':
+            tail.append(0)
+            tail.append(0)
+            tail[-2] = head[0] - len(tail) // 2
+            tail[-1] = head[1]
+            canvas.itemconfig(array[tail[-2]][tail[-1]], fill=snake_color)
+        elif direction[-1] == 'right':
+            tail.append(0)
+            tail.append(0)
+            tail[-2] = head[0]
+            tail[-1] = head[1] - len(tail) // 2
+            canvas.itemconfig(array[tail[-2]][tail[-1]], fill=snake_color)
+
+
+def move_tail():
+    global tail
+    canvas.itemconfig(array[tail[-2]][tail[-1]], fill=canvas_color)
+    if direction[-1] == 'up':
+        tail[0] = head[0] + 1
+        tail[1] = head[1]
+        canvas.itemconfig(array[tail[0]][tail[1]], fill=snake_color)
+    elif direction[-1] == 'left':
+        tail[0] = head[0]
+        tail[1] = head[1] + 1
+        canvas.itemconfig(array[tail[0]][tail[1]], fill=snake_color)
+    elif direction[-1] == 'down':
+        tail[0] = head[0] - 1
+        tail[1] = head[1]
+        canvas.itemconfig(array[tail[0]][tail[1]], fill=snake_color)
+    elif direction[-1] == 'right':
+        tail[0] = head[0]
+        tail[1] = head[1] - 1
+        canvas.itemconfig(array[tail[0]][tail[1]], fill=snake_color)
+
+    if len(tail) > 2:
+        for i in range(2, len(tail), 2):
+            if direction[-i // 2 - 1] == 'up':
+                tail[i] = tail[i - 2] + 1
+                tail[i + 1] = tail[i - 1]
+                canvas.itemconfig(array[tail[i]][tail[i + 1]], fill=snake_color)
+            elif direction[-i // 2 - 1] == 'left':
+                tail[i] = tail[i - 2]
+                tail[i + 1] = tail[i - 1] + 1
+                canvas.itemconfig(array[tail[i]][tail[i + 1]], fill=snake_color)
+            elif direction[-i // 2 - 1] == 'down':
+                tail[i] = tail[i - 2] - 1
+                tail[i + 1] = tail[i - 1]
+                canvas.itemconfig(array[tail[i]][tail[i + 1]], fill=snake_color)
+            elif direction[-i // 2 - 1] == 'right':
+                tail[i] = tail[i - 2]
+                tail[i + 1] = tail[i - 1] - 1
+                canvas.itemconfig(array[tail[i]][tail[i + 1]], fill=snake_color)
+
+
+def is_in_tail():
+    for i in range(0, len(tail), 2):
+        if head[0] == tail[i] and head[1] == tail[i + 1]:
+            print('Вы врезались в собственный хвост :/')
+            game_over()
+
+
+def game_over():
+    global game_ended
+    game_ended = True
+    for i in range(row):
+        for j in range(col):
+            canvas.itemconfig(array[i][j], fill=end_color)
+            time.sleep(0.001)
+            tk.update()
+
+
+row = 32  # пример, работает с любыми значениями
+col = 27  # пример, работает с любыми значениями
+tk = Tk()
+tk.title('ДубровскихНикита_Прог_ДЗ_Змейка')
+tk.resizable(False, False)
+game_ended = False
+direction, array, tail = [], [], []
+head = [randint(0, row - 1), randint(0, col - 1)]
+eat = [randint(0, row - 1), randint(0, col - 1)]
+eat_color = 'green'
+snake_color = 'cyan'
+canvas_color = 'yellow'
+end_color = 'red'
+
+canvas = Canvas(tk, width=(col + 2) * 20, height=(row + 2) * 20)
+canvas.pack()
+
+tk.bind('<w>', up)
+tk.bind('<a>', left)
+tk.bind('<s>', down)
+tk.bind('<d>', right)
+
+create_field()
+canvas.itemconfig(array[head[0]][head[1]], fill=snake_color)
+canvas.itemconfig(array[eat[0]][eat[1]], fill=eat_color)
+tk.mainloop()
